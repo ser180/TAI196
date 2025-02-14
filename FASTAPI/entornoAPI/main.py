@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from typing import Optional
 
 app= FastAPI(
@@ -18,48 +18,35 @@ usuarios=[
 def main():
     return {'Hola FastAPI':'Sergio Ramón'}
 
-@app.get('/promedio', tags=['Promedio'])
-def promedio():
-    return 20.1
+#endpoint Consultar todos
+@app.get('/usuarios',tags=['Operaciones CRUD'])
+def ConsultarTodos():
+    return {"Usuarios Registrados ": usuarios}
 
-#endPoint Parametro obligatorio
-@app.get('/usuario/{id}', tags=['Parametro obligatorio'])
-def consultaUsuario(id:int):
-    #Conectarse a la BD
-    #Hacer consulta y retornar resultset
-    return{"Se encontro el usuario": id}
+#endpoint Para Agregar usuarios
+@app.post('/usuario/',tags=['Operaciones CRUD'])
+def AgregarUsuario(usuarionuevo: dict ):
+    for usr in usuarios: #verificar la lista por medio de una validación
+        if usr["id"] == usuarionuevo.get("id"): #Si se repite el id manda un error por medio del raise
+            raise HTTPException(status_code=400, detail="El id ya esta registrado") 
+    usuarios.append(usuarionuevo) #Agrega un usuario nuevo a la lista por medio del append
+    return usuarionuevo #Devuelve como respuesta positiva el usuario guardado
 
-#endPoint Parametro opcional
-@app.get('/usuario/', tags=['Parametro opcional'])
-def consultaUsuario2(id: Optional[int]= None):
-    if id is not None:
-        for usuario in usuarios:
-            if usuario["id"] == id:
-                return {"Mensaje":"Usuario encontrado", "Usuario": usuario}
-        return{"Mensaje":f"No se encontro el id: {id}"}
-    else:
-        return{"Mensaje":"No se proporciono un Id"}
+#endpoint PUT
+@app.put('/usuario/{id}', tags=['Operaciones CRUD'])
+def ActualizarUsuario(id: int, usuario_actualizado: dict):
+    for index, usr in enumerate(usuarios):
+        if usr["id"] == id:
+            usuarios[index].update(usuario_actualizado)
+            return usuarios[index]
+    raise HTTPException(status_code=400, detail="El usuario no existe")
 
-#--------------------------------------------------------------------------------------
-
-#endpoint con varios parametro opcionales
-@app.get("/usuarios/", tags=["3 parámetros opcionales"])
-async def consulta_usuarios(
-    usuario_id: Optional[int] = None,
-    nombre: Optional[str] = None,
-    edad: Optional[int] = None
-):
-    resultados = []
-
-    for usuario in usuarios:
-        if (
-            (usuario_id is None or usuario["id"] == usuario_id) and
-            (nombre is None or usuario["nombre"].lower() == nombre.lower()) and
-            (edad is None or usuario["edad"] == edad)
-        ):
-            resultados.append(usuario)
-
-    if resultados:
-        return {"usuarios_encontrados": resultados}
-    else:
-        return {"mensaje": "No se encontraron usuarios que coincidan con los parámetros proporcionados."}
+    
+#endpoint DELETE
+@app.delete('/usuario/{id}', tags=['Operaciones CRUD'])
+def EliminarUsuario(id: int):
+    for i, usr in enumerate(usuarios):
+        if usr["id"] == id:
+            usuarios.pop(i) 
+            return {"message": "Usuario eliminado exitosamente"}
+    raise HTTPException(status_code=400, detail="El usuario no existe")
