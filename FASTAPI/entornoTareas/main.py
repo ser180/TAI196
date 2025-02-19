@@ -12,6 +12,16 @@ Tareas=[
     {"id":2,"titulo":"Hacer tarea","descripcion":"Tarea Isay", "vencimiento":"14-03-24","estado":"En espera"}
 ]
 
+#Obtener tareas
 @app.get("/tareas", tags=['Tareas'])
 def obtener_tareas():
     return {"Tareas registradas ": Tareas}
+
+#Registrar tareas
+@app.post('/tareas/',tags=['Tareas'])
+def AgregarUsuario(tareasnueva: dict ):
+    for usr in Tareas: #verificar la lista por medio de una validación
+        if usr["id"] == tareasnueva.get("id"): #Si se repite el id manda un error por medio del raise
+            raise HTTPException(status_code=400, detail="El id ya esta registrado") 
+    Tareas.append(tareasnueva) #Agrega un usuario nuevo a la lista por medio del append
+    return tareasnueva #Devuelve como respuesta positiva el usuario guardado
