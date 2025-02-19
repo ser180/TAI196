@@ -33,4 +33,15 @@ def ActualizarTarea(id: int, tarea_actualizada: dict):
         if usr["id"] == id:
             Tareas[index].update(tarea_actualizada)
             return Tareas[index]
-    raise HTTPException(status_code=400, detail="El usuario no existe")
+    raise HTTPException(status_code=400, detail="La tarea no existe")
+
+#Eliminar Tarea
+@app.delete('/tareas/{id}', tags=['Tareas'])
+def EliminarTarea(id: int):
+    for i, usr in enumerate(Tareas):
+        if usr["id"] == id:
+            Tareas.pop(i) 
+            return {"message": "Tarea eliminada exitosamente"}
+    raise HTTPException(status_code=400, detail="La tarea no existe")
+
+#Obtener tarea por medio de id especifico
