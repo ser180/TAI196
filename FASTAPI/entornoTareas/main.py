@@ -45,3 +45,9 @@ def EliminarTarea(id: int):
     raise HTTPException(status_code=400, detail="La tarea no existe")
 
 #Obtener tarea por medio de id especifico
+@app.get("/tareas/{id}", tags=['Tareas'])
+def obtener_tarea_id(id:int):
+    tarea = next((t for t in Tareas if t["id"] == id),None)
+    if not tarea:
+        raise HTTPException(status_code=400, detail = "Tarea no encontrada")
+    return tarea
