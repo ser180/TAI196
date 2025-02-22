@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
-from typing import Optional
+from typing import Optional, List
+from pydantic import BaseModel
 
 app= FastAPI(
     title='Mi primer API 196',
@@ -7,37 +8,44 @@ app= FastAPI(
     version = '1.0.1'
 )
 
+#Modelo para la validacion de datos
+class modelUsuario(BaseModel):
+    id:int
+    nombre:str
+    edad:int
+    correo:str
+
 usuarios=[
-    {"id":1,"nombre":"Sergio","edad":20},
-    {"id":2,"nombre":"Ayrton","edad":21},
-    {"id":3,"nombre":"Carlos","edad":20},
-    {"id":4,"nombre":"Noel","edad":23},
+    {"id":1,"nombre":"Sergio","edad":20, "correo":"sergio@example.com"},
+    {"id":2,"nombre":"Ayrton","edad":21, "correo":"ayrton@example.com"},
+    {"id":3,"nombre":"Carlos","edad":20, "correo":"carlos@example.com"},
+    {"id":4,"nombre":"Noel","edad":23, "correo":"noel@example.com"},
 ]
 
 @app.get('/', tags=['Inicio'])
 def main():
     return {'Hola FastAPI':'Sergio Ramón'}
 
-#endpoint Consultar todos
-@app.get('/usuarios',tags=['Operaciones CRUD'])
+#endpoint Consultar todos (GET)
+@app.get('/usuarios', response_model= List[modelUsuario], tags=['Operaciones CRUD'])
 def ConsultarTodos():
-    return {"Usuarios Registrados ": usuarios}
+    return usuarios
 
-#endpoint Para Agregar usuarios
-@app.post('/usuario/',tags=['Operaciones CRUD'])
-def AgregarUsuario(usuarionuevo: dict ):
+#endpoint Para Agregar usuarios (POST)
+@app.post('/usuario/', response_model= modelUsuario, tags=['Operaciones CRUD'])
+def AgregarUsuario(usuarionuevo: modelUsuario ):
     for usr in usuarios: #verificar la lista por medio de una validación
-        if usr["id"] == usuarionuevo.get("id"): #Si se repite el id manda un error por medio del raise
+        if usr["id"] == usuarionuevo.id: #Si se repite el id manda un error por medio del raise
             raise HTTPException(status_code=400, detail="El id ya esta registrado") 
     usuarios.append(usuarionuevo) #Agrega un usuario nuevo a la lista por medio del append
     return usuarionuevo #Devuelve como respuesta positiva el usuario guardado
 
 #endpoint PUT
-@app.put('/usuario/{id}', tags=['Operaciones CRUD'])
-def ActualizarUsuario(id: int, usuario_actualizado: dict):
+@app.put('/usuario/{id}',  response_model= modelUsuario, tags=['Operaciones CRUD'])
+def ActualizarUsuario(id: int, usuario_actualizado: modelUsuario):
     for index, usr in enumerate(usuarios):
         if usr["id"] == id:
-            usuarios[index].update(usuario_actualizado)
+            usuarios[index] = usuario_actualizado.model_dump()
             return usuarios[index]
     raise HTTPException(status_code=400, detail="El usuario no existe")
 
@@ -50,3 +58,4 @@ def EliminarUsuario(id: int):
             usuarios.pop(i) 
             return {"message": "Usuario eliminado exitosamente"}
     raise HTTPException(status_code=400, detail="El usuario no existe")
+
