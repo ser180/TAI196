@@ -16,3 +16,4 @@ class BearerJWT(HTTPBearer):
         if data.get('correo')!= 'sergio@example.com':
             raise HTTPException(status_code=403, detail='Credenciales No Validas')
 
+
